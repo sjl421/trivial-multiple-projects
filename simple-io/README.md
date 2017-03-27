@@ -48,10 +48,12 @@ A selectable channel for stream-oriented listening sockets.
 A server-socket channel is created by invoking the open method of this class. It is not possible to create a channel for an arbitrary, pre-existing ServerSocket. A newly-created server-socket channel is open but not yet bound. An attempt to invoke the accept method of an unbound server-socket channel will cause a NotYetBoundException to be thrown. A server-socket channel can be bound by invoking one of the bind methods defined by this class.
 Socket options are configured using the setOption method. Server-socket channels support the following options:
 <br/>
+
 | Option Name | Description |
 |-------------|-------------|
 | SO_RCVBUF | The size of the socket receive buffer |
 | SO_REUSEADDR | Re-use address |
+
 <br/>
 Additional (implementation specific) options may also be supported.
 Server-socket channels are safe for use by multiple concurrent threads.
