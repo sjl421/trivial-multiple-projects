@@ -1,6 +1,8 @@
 package com.charlie;
 
 import com.charlie.event.EventHandler;
+import com.charlie.domain.HttpRequest;
+import com.charlie.io.Reader;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -58,7 +60,6 @@ public class Server extends Thread {
                         handler.executeOnAccepted();
                         sc.register(selector, SelectionKey.OP_READ);
                     } else if (key.isReadable()) {
-
                     }
                 }
             } catch (IOException e) {

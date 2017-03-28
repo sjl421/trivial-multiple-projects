@@ -5,4 +5,9 @@ package com.charlie.domain;
  *
  */
 public class HttpRequest {
+
+    private byte[] data;
+
+    public HttpRequest() {
+    }
 }
