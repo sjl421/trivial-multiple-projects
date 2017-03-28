@@ -1,7 +1,5 @@
 package com.charlie;
 
-import com.charlie.domain.HttpRequest;
-import com.charlie.domain.HttpResponse;
 import com.charlie.event.EventHandler;
 import com.charlie.event.ServiceListener;
 
@@ -20,6 +18,7 @@ public enum  DefaultEventHandler implements EventHandler {
         public synchronized void addListener(ServiceListener listener) {
             listeners.add(listener);
         }
+
         @Override
         public void executeOnAccept() {
             listeners.forEach(ServiceListener::onAccept);
