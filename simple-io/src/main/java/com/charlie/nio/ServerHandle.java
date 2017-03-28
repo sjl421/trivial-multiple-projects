@@ -5,10 +5,7 @@ import javax.script.ScriptException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -34,7 +31,7 @@ public class ServerHandle implements Runnable {
             // 绑定端口
             serverChannel.socket().bind(new InetSocketAddress(port), 1024);
             // 监听客户端连接请求
-            serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+            serverChannel.register(selector, SelectionKey.OP_READ);
             // 标记服务器已开启
             started = true;
             System.out.println("服务器已经启动,端口号：" + port);
@@ -57,6 +54,7 @@ public class ServerHandle implements Runnable {
                 Set<SelectionKey> keys = selector.selectedKeys();
                 Iterator<SelectionKey> it = keys.iterator();
                 SelectionKey key;
+
                 while (it.hasNext()) {
                     key = it.next();
                     it.remove();
