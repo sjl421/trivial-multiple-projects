@@ -20,5 +20,6 @@
   <modules>
     <module>simple-serialization</module>
     <module>rpc</module>
+    <module>simple-io</module>
   </modules>
 </project>
