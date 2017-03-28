@@ -19,5 +19,6 @@
 
   <modules>
     <module>simple-serialization</module>
+    <module>rpc</module>
   </modules>
 </project>
