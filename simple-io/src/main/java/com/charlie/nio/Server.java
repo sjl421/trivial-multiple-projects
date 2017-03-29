@@ -8,19 +8,19 @@ import java.io.IOException;
  */
 public class Server {
     private static int DEFAULT_PORT = 12345;
-    private static ServerHandle serverHandle;
+    private static ServerHandler serverHandler;
 
     public static void start() throws IOException {
         start(DEFAULT_PORT);
     }
 
     public static synchronized void start(int port) throws IOException {
-        if (serverHandle != null) {
-            serverHandle.stop();
+        if (serverHandler != null) {
+            serverHandler.stop();
         }
 
-        serverHandle = new ServerHandle(port);
-        new Thread(serverHandle, "Server").start();
+        serverHandler = new ServerHandler(port);
+        new Thread(serverHandler, "Server").start();
     }
 
     public static void main(String[] args) throws IOException {

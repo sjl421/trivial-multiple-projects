@@ -1,4 +1,4 @@
-## Java NIO 和 AIO
+## Java NIO
 
 ### 简介
 
@@ -151,7 +151,7 @@ Java NIO的通道类似流，但又有些不同：
 ```java
 public class BaseFileChannel {
     public static void main(String[] args) throws IOException {
-        RandomAccessFile aFile = new RandomAccessFile("README.md", "rw");
+        RandomAccessFile aFile = new RandomAccessFile(NIO.md, "rw");
         FileChannel inChannel = aFile.getChannel();
 
         ByteBuffer buf = ByteBuffer.allocate(48);
@@ -864,3 +864,4 @@ int bytesRead = sourceChannel.read(buf);
 ```
 
 read()方法返回的int值会告诉我们多少字节被读进了缓冲区。
+

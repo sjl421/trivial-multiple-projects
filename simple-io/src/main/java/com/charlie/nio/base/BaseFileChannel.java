@@ -11,7 +11,7 @@ import java.nio.channels.FileChannel;
  */
 public class BaseFileChannel {
     public static void main(String[] args) throws IOException {
-        RandomAccessFile aFile = new RandomAccessFile("README.md", "rw");
+        RandomAccessFile aFile = new RandomAccessFile("NIO.md", "rw");
         FileChannel inChannel = aFile.getChannel();
 
         ByteBuffer buf = ByteBuffer.allocate(48);

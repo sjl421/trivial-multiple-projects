@@ -13,14 +13,14 @@ import java.util.Set;
  * Created by dhy on 17-3-27.
  * NIO 服务端
  */
-public class ServerHandle implements Runnable {
+public class ServerHandler implements Runnable {
 
     // 多路复用器
     private Selector selector;
     private ServerSocketChannel serverChannel;
     private volatile boolean started;
 
-    public ServerHandle(int port) {
+    public ServerHandler(int port) {
         try {
             // 创建多路复用器
             selector = Selector.open();
@@ -31,7 +31,7 @@ public class ServerHandle implements Runnable {
             // 绑定端口
             serverChannel.socket().bind(new InetSocketAddress(port), 1024);
             // 监听客户端连接请求
-            serverChannel.register(selector, SelectionKey.OP_READ);
+            serverChannel.register(selector, SelectionKey.OP_ACCEPT);
             // 标记服务器已开启
             started = true;
             System.out.println("服务器已经启动,端口号：" + port);

@@ -16,7 +16,6 @@ public class Test {
         Thread.sleep(100);
         //运行客户端
         Client.start();
-        Scanner sc = new Scanner(System.in);
         while(Client.sendMsg(new Scanner(System.in).nextLine())) {
             System.out.println();
         }
