@@ -14,41 +14,41 @@ import java.util.List;
  */
 public enum  DefaultEventHandler implements EventHandler {
 
-    INSTANCE {
-        private final List<ServiceListener> listeners = new LinkedList<>();
+    INSTANCE;
 
-        public synchronized void addListener(ServiceListener listener) {
-            listeners.add(listener);
-        }
+    private final List<ServiceListener> listeners = new LinkedList<>();
 
-        @Override
-        public void executeOnAccept(String requestUrl) {
-            listeners.forEach(listener -> listener.onAccept(requestUrl));
-        }
+    public synchronized void addListener(ServiceListener listener) {
+        listeners.add(listener);
+    }
 
-        @Override
-        public void executeOnAccepted(String requestUrl) {
-            listeners.forEach(listener -> listener.onAccepted(requestUrl));
-        }
+    @Override
+    public void executeOnAccept(String requestUrl) {
+        listeners.forEach(listener -> listener.onAccept(requestUrl));
+    }
 
-        @Override
-        public void executeOnRead(HttpRequest request) {
-            listeners.forEach(listener -> listener.onRead(request));
-        }
+    @Override
+    public void executeOnAccepted(String requestUrl) {
+        listeners.forEach(listener -> listener.onAccepted(requestUrl));
+    }
 
-        @Override
-        public void executeOnWrite(HttpRequest request, HttpResponse response) {
-            listeners.forEach(listener -> listener.onWrite(request, response));
-        }
+    @Override
+    public void executeOnRead(HttpRequest request) {
+        listeners.forEach(listener -> listener.onRead(request));
+    }
 
-        @Override
-        public void executeOnError(String msg) {
-            listeners.forEach(listener -> listener.onError(msg));
-        }
+    @Override
+    public void executeOnWrite(HttpRequest request, HttpResponse response) {
+        listeners.forEach(listener -> listener.onWrite(request, response));
+    }
 
-        @Override
-        public void executeOnClose() {
-            listeners.forEach(ServiceListener::onClose);
-        }
+    @Override
+    public void executeOnError(String msg) {
+        listeners.forEach(listener -> listener.onError(msg));
+    }
+
+    @Override
+    public void executeOnClose() {
+        listeners.forEach(ServiceListener::onClose);
     }
 }

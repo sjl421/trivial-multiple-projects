@@ -1,6 +1,5 @@
 package com.charlie;
 
-import com.charlie.domain.HttpMethod;
 import com.charlie.domain.HttpRequest;
 import com.charlie.domain.HttpResponse;
 import com.charlie.event.EventHandler;
@@ -65,11 +64,13 @@ public class Server extends Thread {
                     } else if (key.isReadable()) {
                         SocketChannel sc = (SocketChannel) key.channel();
                         HttpRequest httpRequest = Reader.processRequest(sc);
+                        handler.executeOnRead(httpRequest);
                         sc.register(selector, SelectionKey.OP_WRITE, httpRequest);
                     } else if (key.isWritable()) {
                         SocketChannel sc = (SocketChannel) key.channel();
                         HttpRequest request = (HttpRequest) key.attachment();
-                        Writer.processResponse(sc, request);
+                        HttpResponse response = Writer.processResponse(sc, request);
+                        handler.executeOnWrite(request, response);
                     }
                 }
             } catch (IOException e) {
