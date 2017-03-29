@@ -1,11 +1,9 @@
-package com.charlie.event;
+package com.charlie;
 
-import com.charlie.Client;
-import com.charlie.DefaultEventHandler;
-import com.charlie.Server;
 import com.charlie.domain.HttpMethod;
 import com.charlie.domain.HttpRequest;
 import com.charlie.domain.HttpResponse;
+import com.charlie.event.LogEvent;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -17,9 +15,10 @@ import static junit.framework.TestCase.assertEquals;
  * Created by dhy on 17-3-29.
  *
  */
-public class EventTest {
+public class ClientTest {
+
     @Test
-    public void testEvent() throws IOException {
+    public void testSendRequest() throws IOException {
         Server server = new Server(PORT);
         server.start();
         Client client = new Client(LOCALHOST, PORT);

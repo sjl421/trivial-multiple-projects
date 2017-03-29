@@ -12,22 +12,22 @@ import org.slf4j.LoggerFactory;
 public class LogEvent implements ServiceListener {
     @Override
     public void onAccept(String requestUrl) {
-        LOGGER.info(String.format("the remote client [%s] is trying to connect!", requestUrl));
+        LOGGER.debug(String.format("the remote client [%s] is trying to connect!", requestUrl));
     }
 
     @Override
     public void onAccepted(String requestUrl) {
-        LOGGER.info(String.format("the remote client [%s] connect successfully!", requestUrl));
+        LOGGER.debug(String.format("the remote client [%s] connect successfully!", requestUrl));
     }
 
     @Override
     public void onClose() {
-        LOGGER.info("the remote client disconnect!");
+        LOGGER.debug("the remote client disconnect!");
     }
 
     @Override
     public void onRead(HttpRequest request) {
-        LOGGER.info(String.format("the remote client [%s] using [%s] method!", request.getRequestURl(), request.getHttpMethod()));
+        LOGGER.debug(String.format("the remote client [%s] using [%s] method!", request.getRequestURl(), request.getHttpMethod()));
     }
 
     @Override
