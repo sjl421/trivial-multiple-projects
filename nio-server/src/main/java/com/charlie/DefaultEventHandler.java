@@ -1,5 +1,7 @@
 package com.charlie;
 
+import com.charlie.domain.HttpRequest;
+import com.charlie.domain.HttpResponse;
 import com.charlie.event.EventHandler;
 import com.charlie.event.ServiceListener;
 
@@ -20,23 +22,23 @@ public enum  DefaultEventHandler implements EventHandler {
         }
 
         @Override
-        public void executeOnAccept() {
-            listeners.forEach(ServiceListener::onAccept);
+        public void executeOnAccept(String requestUrl) {
+            listeners.forEach(listener -> listener.onAccept(requestUrl));
         }
 
         @Override
-        public void executeOnAccepted() {
-            listeners.forEach(ServiceListener::onAccepted);
+        public void executeOnAccepted(String requestUrl) {
+            listeners.forEach(listener -> listener.onAccepted(requestUrl));
         }
 
         @Override
-        public void executeOnRead() {
-            listeners.forEach(ServiceListener::onRead);
+        public void executeOnRead(HttpRequest request) {
+            listeners.forEach(listener -> listener.onRead(request));
         }
 
         @Override
-        public void executeOnWrite() {
-            listeners.forEach(ServiceListener::onWrite);
+        public void executeOnWrite(HttpRequest request, HttpResponse response) {
+            listeners.forEach(listener -> listener.onWrite(request, response));
         }
 
         @Override

@@ -8,10 +8,10 @@ import com.charlie.domain.HttpResponse;
  *
  */
 public interface EventHandler {
-    void executeOnAccept();
-    void executeOnAccepted();
-    void executeOnRead();
-    void executeOnWrite();
+    void executeOnAccept(String requestUrl);
+    void executeOnAccepted(String requestUrl);
+    void executeOnRead(HttpRequest request);
+    void executeOnWrite(HttpRequest request, HttpResponse response);
     void executeOnError(String msg);
     void executeOnClose();
 }

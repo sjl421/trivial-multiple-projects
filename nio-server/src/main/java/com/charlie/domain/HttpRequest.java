@@ -8,6 +8,16 @@ public class HttpRequest {
 
     private HttpMethod httpMethod;
 
+    private String requestURl;
+
+    public String getRequestURl() {
+        return requestURl;
+    }
+
+    public void setRequestURl(String requestURl) {
+        this.requestURl = requestURl;
+    }
+
     public HttpMethod getHttpMethod() {
         return httpMethod;
     }

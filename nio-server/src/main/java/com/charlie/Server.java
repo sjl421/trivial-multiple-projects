@@ -55,12 +55,12 @@ public class Server extends Thread {
 //                    }
                     if (key.isAcceptable()) {
                         ServerSocketChannel ssc0 = (ServerSocketChannel) key.channel();
-                        handler.executeOnAccept();
+                        handler.executeOnAccept(ssc0.getLocalAddress().toString());
 
                         SocketChannel sc = ssc0.accept();
                         sc.configureBlocking(false);
 
-                        handler.executeOnAccepted();
+                        handler.executeOnAccepted(ssc0.getLocalAddress().toString());
                         sc.register(selector, SelectionKey.OP_READ);
                     } else if (key.isReadable()) {
                         SocketChannel sc = (SocketChannel) key.channel();

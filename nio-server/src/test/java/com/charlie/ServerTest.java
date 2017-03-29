@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ServerTest extends Thread {
     @Test
-    public void testServer() throws IOException {
+    public void testConcurrency() throws IOException {
         Server server = new Server(PORT);
         server.start();
         long start = System.currentTimeMillis();
