@@ -6,6 +6,7 @@ import com.charlie.util.SerializeUtils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.*;
 
 /**
@@ -14,7 +15,7 @@ import java.util.concurrent.*;
  */
 public class Reader {
 
-    public static HttpRequest processRequest(ReadableByteChannel sc) {
+    public static HttpRequest processRequest(SocketChannel sc) {
         try {
             return service.submit(() -> read(sc)).get(100, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -23,7 +24,7 @@ public class Reader {
         return null;
     }
 
-    private static HttpRequest read(ReadableByteChannel sc) throws IOException {
+    private static HttpRequest read(SocketChannel sc) throws IOException {
         ByteBuffer data = ByteBuffer.allocate(BUFFER_SIZE);
         while (sc.read(data) > 0) {
             // 当channel中有数据时一直读取

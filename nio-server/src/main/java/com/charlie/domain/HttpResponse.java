@@ -1,16 +1,27 @@
 package com.charlie.domain;
 
-import java.nio.channels.SocketChannel;
-
 /**
  * Created by dhy on 17-3-28.
  *
  */
 public class HttpResponse {
 
-    public HttpResponse(SocketChannel sc) {
-        this.sc = sc;
+    public HttpResponse() {
+
     }
 
-    private final SocketChannel sc;
+    public HttpResponse(HttpMethod httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    // 返回用户请求时用的方法
+    private HttpMethod httpMethod;
+
+    public HttpMethod getHttpMethod() {
+        return httpMethod;
+    }
+
+    public void setHttpMethod(HttpMethod httpMethod) {
+        this.httpMethod = httpMethod;
+    }
 }

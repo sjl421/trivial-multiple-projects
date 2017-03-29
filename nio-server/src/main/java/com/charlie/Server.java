@@ -1,10 +1,11 @@
 package com.charlie;
 
 import com.charlie.domain.HttpMethod;
-import com.charlie.event.EventHandler;
 import com.charlie.domain.HttpRequest;
+import com.charlie.domain.HttpResponse;
+import com.charlie.event.EventHandler;
 import com.charlie.io.Reader;
-import sun.misc.Request;
+import com.charlie.io.Writer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -62,13 +63,13 @@ public class Server extends Thread {
                         handler.executeOnAccepted();
                         sc.register(selector, SelectionKey.OP_READ);
                     } else if (key.isReadable()) {
-                        // TODO 处理SocketChannel的HttpRequest
                         SocketChannel sc = (SocketChannel) key.channel();
                         HttpRequest httpRequest = Reader.processRequest(sc);
                         sc.register(selector, SelectionKey.OP_WRITE, httpRequest);
                     } else if (key.isWritable()) {
-                        // TODO 处理SocketChannel的HttpResponse
-                        System.out.println("output");
+                        SocketChannel sc = (SocketChannel) key.channel();
+                        HttpRequest request = (HttpRequest) key.attachment();
+                        Writer.processResponse(sc, request);
                     }
                 }
             } catch (IOException e) {
@@ -79,11 +80,5 @@ public class Server extends Thread {
     }
 
     public static void main(String[] args) throws IOException {
-        Server server = new Server(5100);
-        server.start();
-        Client client = new Client("127.0.0.1", 5100);
-        HttpRequest request = new HttpRequest();
-        request.setHttpMethod(HttpMethod.GET);
-        client.sendRequest(request);
     }
 }
