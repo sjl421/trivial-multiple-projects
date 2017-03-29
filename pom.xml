@@ -57,5 +57,6 @@
         <module>rpc</module>
         <module>simple-io</module>
         <module>nio-server</module>
+        <module>netty-tutorial</module>
     </modules>
 </project>
