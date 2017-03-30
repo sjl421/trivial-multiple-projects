@@ -6,30 +6,31 @@ NIO 2.0引入了新的异步通道的概念，并提供了异步文件通道和�
 
 我们分析一下我们在这个例子中的流程：
 
-### Apllication
+### Application
 
 `Application` 是所有程序的入口，它首先启动了一个服务端程序，随后启动了一个客户端程序：并且一直从标准输入接收数据，发送给服务端并等待服务端的返回数据；
 
-**在以下的描述中,所有的 AsynchronouServerSocketChannel 都简称为 `ssc`,所有的 AsynchronousSocketChannel 都简称为 `sc`**
+**在以下的描述中,所有的 AsynchronousServerSocketChannel 都简称为 `ssc`,所有的 AsynchronousSocketChannel 都简称为 `sc`**
 
-1. AioServer.start()
-	1. 创建AioServer，创建 `ssc` 并绑定监听的端口 `PORT`;
-	2. server 调用 accept(this, new AcceptHandler()) 方法,并设置回调函数为 AcceptHandler(),当触发一个尝试连接到 `PORT` 的事件时,回调函数会被执行.同时,通过 `this` 参数,将自身作为作为参数传递给了回调函数;
-	3. 当一个客户端尝试连接到服务器时,刚才注册的回调函数会被触发,在这个回调函数中:
-		1. 再次为 `ssc` 注册了 `accept`事件;
-		2. 为 `sc` (在accept方法的回调函数的completed方法中的第一个参数)注册了一个读事件,并为该事件增加了回调函数(ServerReadHandler);
-	4. 当刚才注册的通道可读时,会触发ServerReadHandler的回调,在这个回调中:
-		1. 读取并处理客户端输入;
-		2. 为 `sc` 注册回调函数(在本例子中这个函数是一个匿名函数);
+1. `ssc` : 发起一个异步的accept()方法,注册回调函数 AcceptHandler
+2. `sc`  : 发起一个异步的 connect():
+    1. `ssc` : 触发(1)注册的回调函数;
+	2. `sc`  : 注册回调函数 AsyncClientHandler;
+3. 在 (2.1) 触发的回调函数中:
+	1. `ssc` : 再次发出(1)中的异步请求
+	2. `ssc` : 发出一个异步的 read() 请求,注册回调函数为 ServerReadHadler
+4. `sc`  : 在 (2.2) 的回调函数中输出连接成功日志;
+5. `sc`  : 从 System.in 读取数据,并发起一个异步的 write() 方法,回调函数为 ClientWriteHandler
+	1. `ssc` : (5) 会触发 (3.2) 中的回调函数,
+	2. `sc`  : 同时也会触发 (5) 中的回调函数
+6. `ssc` : 在(5.1)触发的回调函数中,通过输入值计算出输出值,发起一个异步的 write() 方法,并注册一个匿名的回调函数
+7. `sc`  : 在(5.2)触发的回调函数中,通过 buffer.hasRemaining()来保证所有的请求被输出完,并注册回调函数 ClientReadHandler
+8. `ssc` : 在(6)中的write()方法执行,触发(7)中的回调函数输出结果,同时继续接收 `sc` 的写请求.
 
-2. AioClient.start()
-	1. 创建 `sc` 并通过connect请求连接到 `ssc`,同时注册了 connect 的回调函数;
-	2. 步骤1会触发 `ssc` 的回调函数(即1.2中设置的回调函数);
-	3. 连接成功之后,会触发 2.1 中注册的回调函数(在例子中就是简单的输出了一句话);
-3. AioClient.sendMsg()
-	1. 向 `ssc` 发送写请求,这将触发 1.3.2 中注册的回调函数,同时注册 `sc` 的写回调函数;
-		1. 在`ssc`的回调函数中读取接收到的消息计算结果,向 `sc` 写入消息;
-		2. 在 `sc` 写完之后,触发 `sc`上的写回调函数,
+>注意一个非常重要的点:
+>所有的回调函数都只能够触发一次,譬如 accept() 方法,必须在回调函数中再次注册才能够继续的监听某个端口的连接请求;
+>对于 read() 方法,在触发一次之后,如果不重新注册read()方法,那么后续的请求将不会被接收;
+
 
 ### AsynchronousServerSocketChannel
 
