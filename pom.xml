@@ -58,5 +58,6 @@
         <module>simple-io</module>
         <module>nio-server</module>
         <module>netty-tutorial</module>
+        <module>simple-reflection</module>
     </modules>
 </project>
