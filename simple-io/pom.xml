@@ -15,7 +15,7 @@
         </plugins>
     </build>
     <parent>
-    <groupId>com.charlie</groupId>
+    <groupId>com.xxx</groupId>
     <artifactId>trivial-multiple-projects</artifactId>
     <version>1.0</version>
   </parent>

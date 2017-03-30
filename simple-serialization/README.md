@@ -12,10 +12,10 @@
 
 ### 序列化后的结构
 
-对于 `com.charlie.serialize.SerializableObj` 中的对象序列化后为:
+对于 `com.xxx.serialize.SerializableObj` 中的对象序列化后为:
 
 ```
-��sr%com.charlie.serialize.SerializableObj�i�Zz�mLnametLjava/lang/String;xptdhy
+��sr%com.xxx.serialize.SerializableObj�i�Zz�mLnametLjava/lang/String;xptdhy
 ```
 
 可以观察到几个特点:
@@ -26,7 +26,7 @@
 ### 序列化ID问题
 
 - **情景**: 两个客户端A和B视图通过网络传递对象数据,A端将对象C序列化为二进制数据再传给B,B反序列化得到C;
-- **问题**: C对象的全路径为 `com.charlie.serialize`,在A端和B端代码完全一致,也都是先了Serializable接口,序列化时总是提示不成功;
+- **问题**: C对象的全路径为 `com.xxx.serialize`,在A端和B端代码完全一致,也都是先了Serializable接口,序列化时总是提示不成功;
 - **解决**: 虚拟机是否允许反序列化,不仅取决于类路径和功能代码是否一致,一个非常重要的功能是两个类的序列化ID是否一致;
 
 序列化ID可以使用两种不同的生成策略:
