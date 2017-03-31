@@ -1,4 +1,4 @@
-package com.xxx.classes;
+package com.xxx.demo;
 
 import java.io.Serializable;
 import java.lang.annotation.*;
