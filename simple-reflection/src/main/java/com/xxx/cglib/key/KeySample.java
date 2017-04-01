@@ -1,4 +1,4 @@
-package com.xxx.cglib;
+package com.xxx.cglib.key;
 
 import net.sf.cglib.core.KeyFactory;
 

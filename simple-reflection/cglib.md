@@ -524,4 +524,426 @@ public class CallbackFilterExample {
 
 The `Enhancer` instance accepts a `CallbackFilter` in its `Enhancer#setCallbackFilter(CallbackFilter)` method where it expects methods of the enhanced class to be mapped to array indices of an array of Callback instances. When a method is invoked on the created proxy, the Enhancer will then choose the according interceptor and dispatch the called method on the corresponding Callback (which is a marker interface for all the interceptors that were introduced so far). To make this API less awkward, cglib offers a CallbackHelper which will represent a CallbackFilter and which can create an array of Callbacks for you. The enhanced object above will be functionally equivalent to the one in the example for the MethodInterceptor but it allows you to write specialized interceptors whilst keeping the dispatching logic to these interceptors separate.
 
+## How does it work?
 
+When the `Enhancer` creates a class, it will set create a private field for each interceptor that was registered as a `Callback` for the enhanced class after its creation. This also means that class definitions that were created with cglib cannot be reused after their creation since the registration of callbacks does not become a part of the generated class's initialization phase but are prepared manually by cglib after the class was already initialized by the JVM. This also means that classes created with cglib are not technically ready after their initialization and for example cannot be sent over the wire since the callbacks would not exist for the class loaded in the target machine.
+
+Depending on the registered interceptors, cglib might register additional fields such as for example for the `MethodInterceptor` where two private static fields (one holding a reflective Method and a the other holding MethodProxy) are registered per method that is intercepted in the enhanced class or any of its subclasses. Be aware that the `MethodProxy` is making excessive use of the FastClass which triggers the creation of additional classes and is described in further detail below.
+
+```java
+@Test
+public void testFixedValue() throws Exception {
+  Enhancer enhancer = new Enhancer();
+  enhancer.setSuperclass(SampleClass.class);
+  enhancer.setCallback(new FixedValue() {
+    @Override
+    public Object loadObject() throws Exception {
+      return "Hello cglib!";
+    }
+  });
+  SampleClass proxy = (SampleClass) enhancer.create();
+  assertEquals("Hello cglib!", proxy.test(null));
+}
+```
+
+**The anonymous subclass of FixedValue would become hardly referenced from the enhanced SampleClass such that neither the anonymous FixedValue instance or the class holding the @Test method would ever be garbage collected**. This can introduce nasty memory leaks in your applications. `Therefore, do not use non-static inner classes with cglib`. (I only use them in this overview for keeping the examples short.)
+
+Finally, you should never intercept `Object#finalize()`. Due to the subclassing approach of cglib, intercepting finalize is implemented by overriding it what is in general a bad idea. **Enhanced instances that intercept finalize will be treated differently by the garbage collector and will also cause these objects being queued in the JVM's finalization queue**. Also, if you (accidentally) create a hard reference to the enhanced class in your intercepted call to finalize, you have effectively created an noncollectable instance. This is in general nothing you want. Note that final methods are never intercepted by cglib. Thus, `Object#wait`, `Object#notify` and `Object#notifyAll` do not impose the same problems. Be however aware that `Object#clone` can be intercepted what is something you might not want to do.
+
+## Immutable bean
+
+cglib's `ImmutableBean` allows you to create an immutability wrapper similar to for example `Collections#immutableSet`. All changes of the underlying bean will be prevented by an IllegalStateException (however, not by an UnsupportedOperationException as recommended by the Java API). Looking at some bean
+
+```java
+public class SampleBean {
+    private String value;
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+```
+
+we can make this bean immutable:
+
+```java
+public class ImmutableBeanExample {
+    @Test
+    public void testImmutableBean() {
+        SampleBean bean = new SampleBean();
+        bean.setValue("Hello world!");
+        SampleBean immutableBean = (SampleBean) ImmutableBean.create(bean);
+        Assert.assertEquals("Hello world!", immutableBean.getValue());
+        bean.setValue("Hello world, again!");
+        Assert.assertEquals("Hello world, again!", immutableBean.getValue());
+        immutableBean.setValue("Hello cglib!");
+		// Causes exception.
+    }
+}
+```
+
+As obvious from the example, the immutable bean prevents all state changes by throwing an IllegalStateException. However, the state of the bean can be changed by changing the original object. All such changes will be reflected by the ImmutableBean.
+
+## Bean generator
+
+The BeanGenerator is another bean utility of cglib. It will create a bean for you at run time:
+
+```java
+public class BeanGeneratorExample {
+    @Test
+    public void testBeanGenerator() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        BeanGenerator beanGenerator = new BeanGenerator();
+        beanGenerator.addProperty("value", String.class);
+        Object myBean = beanGenerator.create();
+
+        Method setter = myBean.getClass().getMethod("setValue", String.class);
+        setter.invoke(myBean, "Hello cglib!");
+        Method getter = myBean.getClass().getMethod("getValue");
+        Assert.assertEquals("Hello cglib!", getter.invoke(myBean));
+    }
+}
+```
+
+As obvious from the example, the `BeanGenerator` first takes some properties as name value pairs. On creation, the `BeanGenerator` creates the accessors
+
+```
+<type> get<name>()
+void set<name>(<type>)
+```
+
+for you. This might be useful when another library expects beans which it resolved by reflection but you do not know these beans at run time. (An example would be Apache Wicket which works a lot with beans.)
+
+## Bean copier
+
+The `BeanCopier` is another bean utility that copies beans by their property values. Consider another bean with similar properties as SampleBean:
+
+```java
+public class BeanCopierExample {
+    @Test
+    public void testBeanCopier() {
+        BeanCopier copier = BeanCopier.create(SampleBean.class, AnotherSampleBean.class, false);
+        SampleBean bean = new SampleBean();
+        bean.setValue("Hello cglib!");
+        AnotherSampleBean anotherSampleBean = new AnotherSampleBean();
+        copier.copy(bean, anotherSampleBean, null);
+        Assert.assertEquals("Hello cglib!", anotherSampleBean.getValue());
+    }
+}
+```
+
+## Bulk bean
+
+A `BulkBean` allows to use a specified set of a bean's accessors by arrays instead of method calls:
+
+```java
+public class BulkBeanExample {
+    @Test
+    public void testBulkBean() {
+        BulkBean bulkBean = BulkBean.create(SampleBean.class,
+                new String[]{"getValue"},
+                new String[]{"setValue"},
+                new Class[]{String.class});
+
+        SampleBean bean = new SampleBean();
+        bean.setValue("Hello world!");
+        Assert.assertEquals(1, bulkBean.getPropertyValues(bean).length);
+        Assert.assertEquals("Hello world!", bulkBean.getPropertyValues(bean)[0]);
+        bulkBean.setPropertyValues(bean, new Object[]{"Hello cglib!"});
+        Assert.assertEquals("Hello cglib!", bean.getValue());
+    }
+}
+```
+
+The BulkBean **takes an array of getter names**, **an array of setter names and an array of property types as its constructor arguments**. The resulting instrumented class can then extracted as an array by `BulkBean#getPropertyValues(Object)`. Similarly, a bean's properties can be set by `BulkBean#setPropertyValues(Object, Object[])`.
+
+## Bean map
+
+This is the last bean utility within the cglib library. The BeanMap converts all properties of a bean to a **String-to-Object** Java `Map`:
+
+```java
+public class BeanMapExample { @Test
+    public void testBeanGenerator() {
+        SampleBean bean = new SampleBean();
+        BeanMap map = BeanMap.create(bean);
+        bean.setValue("Hello cglib");
+        Assert.assertEquals("Hello cglib", map.get("value"));
+    }
+}
+```
+
+Additionally, the `BeanMap#newInstance(Object)` method allows to create maps for other beans by reusing the same Class.
+
+## Key factory
+
+The `KeyFactory` factory allows the dynamic creation of keys that are composed of multiple values that can be used in for example `Map` implementations. For doing so, the KeyFactory requires some interface that defines the values that should be used in such a key. This interface must contain a single method by the name newInstance that returns an Object. For example:
+
+```java
+public interface SampleKeyFactory {
+	Object newInstance(String first, int second);
+}
+```
+
+```java
+public class KeyFactoryExample {
+    @Test
+    public void testKeyFactory() {
+        SampleKeyFactory keyFactory = (SampleKeyFactory) KeyFactory.create(SampleKeyFactory.class);
+        Object key0 = keyFactory.newInstance("foo", 42);
+        Object key1 = keyFactory.newInstance("foo", 41);
+        Object key2 = keyFactory.newInstance("foo", 42);
+
+        Assert.assertEquals(false, key0.equals(key1));
+        Assert.assertEquals(true, key0.equals(key2));
+    }
+}
+```
+
+The `KeyFactory` will assure the correct implementation of the `Object#equals(Object)` and `Object#hashCode` methods such that the resulting key objects can be used in a Map or a Set. The KeyFactory is also used quite a lot internally in the cglib library.
+
+## Mixin
+
+Some might already know the concept of the `Mixin` class from other programing languages such as Ruby or Scala (where mixins are called traits). cglib `Mixins` allow the **combination of several objects into a single object**. However, in order to do so, those objects must be backed by interfaces:
+
+```java
+public interface IHello {
+    String hello();
+}
+```
+
+```java
+public interface IGoodbye {
+    String goodbye();
+}
+```
+
+```java
+public interface IMixin extends IHello, IGoodbye {
+}
+```
+
+```java
+public class Hello implements IHello {
+    @Override
+    public String hello() {
+        return "hello";
+    }
+}
+```
+
+```java
+public class Goodbye implements IGoodbye {
+    @Override
+    public String goodbye() {
+        return "goodbye";
+    }
+}
+```
+
+```java
+public class MixinExample {
+    @Test
+    public void testMixin() {
+        Mixin mixin = Mixin.create(new Class[]{IHello.class, IGoodbye.class, IMixin.class},
+                new Object[]{new Hello(), new Goodbye()});
+
+        IMixin mixinDelegate = (IMixin) mixin;
+        Assert.assertEquals("hello", mixinDelegate.hello());
+        Assert.assertEquals("goodbye", mixinDelegate.goodbye());
+    }
+}
+```
+
+## String switcher
+
+The `StringSwitcher` emulates a String to int Java mapping:
+
+```java
+public class StringSwitcherExample {
+    @Test
+    public void testStringSwitcher() {
+        String[] strings = {"one", "two"};
+        int[] values = {10, 20};
+        StringSwitcher stringSwitcher = StringSwitcher.create(strings, values, true);
+        Assert.assertEquals(10, stringSwitcher.intValue("one"));
+        Assert.assertEquals(20, stringSwitcher.intValue("two"));
+        Assert.assertEquals(-1, stringSwitcher.intValue("three"));
+    }
+}
+```
+
+The StringSwitcher allows to emulate a switch command on Strings such as it is possible with the built-in Java switch statement since Java 7. If using the StringSwitcher in Java 6 or less really adds a benefit to your code remains however doubtful and I would personally not recommend its use.
+
+## Interface maker
+
+The `InterfaceMaker` does what its name suggests: It dynamically creates a new interface.
+
+```java
+public class InterfaceMakerExample {
+    @Test
+    public void testInterfaceMaker() {
+        Signature signature = new Signature("foo", Type.DOUBLE_TYPE, new Type[]{Type.INT_TYPE});
+        InterfaceMaker maker = new InterfaceMaker();
+        maker.add(signature, new Type[0]);
+        Class iface = maker.create();
+        Assert.assertEquals(1, iface.getMethods().length);
+        Assert.assertEquals("foo", iface.getMethods()[0].getName());
+        Assert.assertEquals(double.class, iface.getMethods()[0].getReturnType());
+    }
+}
+```
+
+Other than any other class of cglib's public API, the interface maker relies on ASM types. The creation of an interface in a running application will hardly make sense since an interface only represents a type which can be used by a compiler to check types. It can however make sense when you are generating code that is to be used in later development.
+
+## Method delegate
+
+A `MethodDelegate` allows to emulate a C#-like delegate to a specific method by binding a method call to some interface. For example, the following code would bind the `SampleBean#getValue` method to a delegate:
+
+```java
+public interface BeanDelegate {
+    String getValueFromDelegate();
+}
+```
+
+```java
+public class MethodDelegateExample {
+    @Test
+    public void testMethodDelegate() {
+        SampleBean bean = new SampleBean();
+        bean.setValue("Hello cglib!");
+        BeanDelegate delegate = (BeanDelegate) MethodDelegate.create(bean, "getValue", BeanDelegate.class);
+        Assert.assertEquals("Hello cglib!", delegate.getValueFromDelegate());
+    }
+}
+```
+
+There are however some things to note:
+
+1. The factory method `MethodDelegate#create` takes exactly one method name as its second argument. This is the method the MethodDelegate will proxy for you.
+2. There must be a method without arguments defined for the object which is given to the factory method as its first argument. Thus, the MethodDelegate is not as strong as it could be.
+3. **The third argument must be an interface with exactly one argument**. The MethodDelegate implements this interface and can be cast to it. When the method is invoked, it will call the proxied method on the object that is the first argument.
+
+Furthermore, consider these drawbacks:
+
+1. cglib creates a new class for each proxy. Eventually, this will litter up your permanent generation heap space
+2. You cannot proxy methods that take arguments.
+3. If your interface takes arguments, the method delegation will simply not work without an exception thrown (the return value will always be null). If your interface requires another return type (even if that is more general), you will get a `IllegalArgumentException`.
+
+### Multicast delegate
+
+The MulticastDelegate works a little different than the MethodDelegate even though it aims at similar functionality. For using the MulticastDelegate, we require an object that implements an interface:
+
+```java
+public interface DelegatationProvider {
+    void setValue(String value);
+}
+```
+
+```java
+public class SimpleMulticastBean implements DelegatationProvider {
+
+    private String value;
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+```
+
+Based on this interface-backed bean we can create a `MulticastDelegate` that dispatches all calls to setValue(String) to several classes that implement the DelegationProvider interface:
+
+```java
+public class MulticastDelegateExample {
+    @Test
+    public void testMulticastDelegate() {
+        MulticastDelegate multicastDelegate = MulticastDelegate.create(DelegatationProvider.class);
+        SimpleMulticastBean first = new SimpleMulticastBean();
+        SimpleMulticastBean second = new SimpleMulticastBean();
+        multicastDelegate = multicastDelegate.add(first);
+        multicastDelegate = multicastDelegate.add(second);
+
+        DelegatationProvider provider = (DelegatationProvider) multicastDelegate;
+        provider.setValue("Hello world!");
+
+        Assert.assertEquals("Hello world!", first.getValue());
+        Assert.assertEquals("Hello world!", second.getValue());
+    }
+}
+```
+
+1. The objects need to implement a single-method interface. This sucks for third-party libraries and is awkward when you use CGlib to do some magic where this magic gets exposed to the normal code. Also, you could implement your own delegate easily (without byte code though but I doubt that you win so much over manual delegation).
+2. When your delegates return a value, you will receive only that of the last delegate you added. All other return values are lost (but retrieved at some point by the multicast delegate).
+
+### Constructor delegate
+
+A ConstructorDelegate allows to create a byte-instrumented factory method. For that, that we first require an interface with a single method newInstance which returns an Object and takes any amount of parameters to be used for a constructor call of the specified class. For example, in order to create a ConstructorDelegate for the SampleBean, we require the following to call SampleBean's default (no-argument) constructor:
+
+```java
+public class ConstructorDelegateExample {
+    @Test
+    public void testConstructorDelegate() {
+        SampleBeanConstructorDelegate constructorDelegate =
+                (SampleBeanConstructorDelegate) ConstructorDelegate.create(SampleBean.class, SampleBeanConstructorDelegate.class);
+        SampleBean bean = (SampleBean) constructorDelegate.newInstance();
+        Assert.assertTrue(SampleBean.class.isAssignableFrom(bean.getClass()));
+        Assert.assertTrue(SampleBean.class.equals(bean.getClass()));
+    }
+}
+```
+
+### Parallel sorter
+
+The ParallelSorter claims to be a faster alternative to the Java standard library's array sorters when sorting arrays of arrays:
+
+```java
+public class ParallelSorterExample {
+    @Test
+    public void testParallelSorter() {
+        Integer[][] value = {
+                {4, 3, 9, 0},
+                {2, 1, 6, 0}
+        };
+
+        ParallelSorter.create(value).mergeSort(0);
+
+        for (Integer[] row : value) {
+            int former = -1;
+            for (int val : row) {
+                Assert.assertTrue(former < val);
+                former = val;
+            }
+        }
+    }
+}
+```
+
+The ParallelSorter takes an array of arrays and allows to either apply a merge sort or a quick sort on every row of the array. Be however careful when you use it:
+1. When using arrays of primitives, you have to call merge sort with explicit sorting ranges (e.g. ParallelSorter.create(value).mergeSort(0, 0, 3) in the example. Otherwise, the ParallelSorter has a pretty obvious bug where it tries to cast the primitive array to an array Object[] what will cause a ClassCastException.
+2. If the array rows are uneven, the first argument will determine the length of what row to consider. Uneven rows will either lead to the extra values not being considered for sorting or a ArrayIndexOutOfBoundException.
+
+### Fast class and fast members
+
+The FastClass promises a faster invocation of methods than the Java reflection API by wrapping a Java class and offering similar methods to the reflection API:
+
+```java
+public class FastClassExample {
+    @Test
+    public void testFastClass() throws NoSuchMethodException, InvocationTargetException {
+        FastClass fastClass = FastClass.create(SampleBean.class);
+        FastMethod fastMethod = fastClass.getMethod(SampleBean.class.getMethod("getValue"));
+        SampleBean myBean = new SampleBean();
+        myBean.setValue("Hello cglib!");
+        Assert.assertEquals("Hello cglib!", fastMethod.invoke(myBean, new Object[0]));
+    }
+}
+```
+
+Besides the demonstrated FastMethod, the FastClass can also create FastConstructors but no fast fields. But how can the FastClass be faster than normal reflection? Java reflection is executed by JNI where method invocations are executed by some C-code. The FastClass on the other side creates some byte code that calls the method directly from within the JVM. However, the newer versions of the HotSpot JVM (and probably many other modern JVMs) know a concept called inflation where the JVM will translate reflective method calls into native version's of FastClass when a reflective method is executed often enough. You can even control this behavior (at least on a HotSpot JVM) with setting the sun.reflect.inflationThreshold property to a lower value. (The default is 15.) This property determines after how many reflective invocations a JNI call should be substituted by a byte code instrumented version. **I would therefore recommend to not use FastClass on modern JVMs, it can however fine-tune performance on older Java virtual machines**.

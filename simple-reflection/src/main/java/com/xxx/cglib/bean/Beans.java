@@ -1,4 +1,4 @@
-package com.xxx.cglib;
+package com.xxx.cglib.bean;
 
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;

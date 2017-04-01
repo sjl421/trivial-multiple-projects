@@ -1,4 +1,4 @@
-package com.xxx.cglib;
+package com.xxx.cglib.bean;
 
 import java.beans.PropertyChangeListener;
 
