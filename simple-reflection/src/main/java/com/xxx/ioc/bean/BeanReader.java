@@ -10,10 +10,11 @@ import java.util.Map;
  */
 public class BeanReader {
 
+    //TODO 增加对于使用指定非空的构造器的Bean的创建支持
     public BeanDefinition create(Class<?> clazz, Map<String, Object> valueMap) {
         String beanName = clazz.getName();
         Map<String, BeanProperty> beanProperties = new HashMap<>();
-        return create(clazz, new BeanDefinition(beanName, beanProperties), valueMap);
+        return create(clazz, new BeanDefinition(beanName, beanProperties, clazz), valueMap);
     }
 
     private BeanDefinition create(Class<?> clazz, BeanDefinition beanDefinition, Map<String, Object> valueMap) {

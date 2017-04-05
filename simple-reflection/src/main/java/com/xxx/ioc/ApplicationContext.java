@@ -2,6 +2,7 @@ package com.xxx.ioc;
 
 import com.xxx.ioc.bean.BeanDefinition;
 import com.xxx.ioc.bean.BeanReader;
+import com.xxx.ioc.bean.MyBean;
 
 import java.io.File;
 import java.net.URL;
@@ -20,6 +21,12 @@ public class ApplicationContext {
 
     public ApplicationContext(String basePackage) {
         findInPackage(basePackage);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getBean(String beanName ,Class<T> clazz) {
+        BeanDefinition beanDefinition = beans.get(beanName);
+        return (T) beanDefinition.getInstance();
     }
 
     private void findInPackage(String basePackage) {
@@ -47,9 +54,11 @@ public class ApplicationContext {
             resource = resource.substring(0, index);
             try {
                 Class<?> clazz = Class.forName(resource);
-                BeanDefinition beanDefinition = reader.create(clazz, Collections.emptyMap());
-                beans.put(clazz.getName(), beanDefinition);
-                System.out.println(clazz.getName());
+                if (clazz.isAnnotationPresent(MyBean.class)) {
+                    BeanDefinition beanDefinition = reader.create(clazz, Collections.emptyMap());
+                    beans.put(clazz.getName(), beanDefinition);
+                    System.out.println(clazz.getName());
+                }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
