@@ -1,8 +1,9 @@
-package com.xxx.tutorial;
+package com.xxx.tutorial.discard;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 
 /**
  * Created by charlie.du on 2017/4/26.
@@ -13,7 +14,16 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         // Discard the received data silently
-        ((ByteBuf) msg).release();
+        // ((ByteBuf) msg).release();
+        ByteBuf in = (ByteBuf) msg;
+        try {
+            while (in.isReadable()) {
+                System.out.print((char) in.readByte());
+                System.out.flush();
+            }
+        } finally {
+            ReferenceCountUtil.release(msg);
+        }
     }
 
     @Override
