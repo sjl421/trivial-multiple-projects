@@ -27,7 +27,7 @@
 [27]:http://netty.io/4.0/api/io/netty/channel/ChannelOutboundHandler.html
 [28]:http://netty.io/4.0/api/io/netty/channel/ChannelPromise.html
 [29]:http://netty.io/4.0/api/io/netty/handler/codec/MessageToByteEncoder.html
-[30]:https://github.com/netty/netty/tree/4.0/example/src/main/java/io/netty/example
+[30]:https://github.com/netty/netty/tree/4.0/example/src/main/java/io/netty/exampe
 
 User guide for 4.x
 ==================
