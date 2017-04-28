@@ -1,6 +1,6 @@
-.gitignore
 .idea/
 *.iml
 result.obj
 */target/
 nohup.out
+logs/
