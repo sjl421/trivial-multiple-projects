@@ -1,8 +1,16 @@
 # trivial-multiple-projects
 
+## storm-tutorial
+
+storm 官方文档学习笔记
+
+## java-performance-note
+
+《java性能优化权威指南》学习笔记
+
 ## data-structure-and-algorithm-analysis
 
-《数据结构与算法分析》学习笔记；
+《数据结构与算法分析》学习笔记
 
 ## netty-tutorial
 

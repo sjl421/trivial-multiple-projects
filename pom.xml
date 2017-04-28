@@ -52,10 +52,12 @@
     </build>
 
     <modules>
-        <module>simple-serialization</module>
-        <module>simple-io</module>
-        <module>nio-server</module>
+        <module>java-performance-note</module>
         <module>netty-tutorial</module>
+        <module>nio-server</module>
+        <module>simple-io</module>
         <module>simple-reflection</module>
+        <module>simple-serialization</module>
+        <module>storm-tutorial</module>
     </modules>
 </project>
