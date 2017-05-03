@@ -14,9 +14,9 @@ import java.util.Scanner;
  * Created by dhy on 17-3-29.
  *
  */
-public class Client implements Runnable {
+public class DemoClient implements Runnable {
 
-    static ClientHandler client = new ClientHandler();
+    static DemoClientHandler client = new DemoClientHandler();
 
     @Override
     public void run() {
@@ -44,7 +44,7 @@ public class Client implements Runnable {
     }
 
     public static void main(String[] args) {
-        new Thread(new Client()).start();
+        new Thread(new DemoClient()).start();
         Scanner scanner = new Scanner(System.in);
         while (client.sendMsg(scanner.nextLine())) {
             // ignore

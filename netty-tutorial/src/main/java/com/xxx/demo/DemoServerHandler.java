@@ -11,7 +11,7 @@ import java.io.UnsupportedEncodingException;
  * Created by dhy on 17-3-29.
  *
  */
-public class ServerHandler extends ChannelInboundHandlerAdapter {
+public class DemoServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws UnsupportedEncodingException {
         ByteBuf in = (ByteBuf) msg;

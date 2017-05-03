@@ -271,7 +271,7 @@ public abstract <A> void write(ByteBuffer src,
  * further attempts to {@code write} to the channel cause an unspecified runtime exception
  * to be throws.When a timeout elapses then the state of the {@link ByteBuffer}, or the 
  * sequence of buffers, for the I/O operation is not defined.Buffers should be 
- * discard or at least care must be taken to ensure that the buffers are not accessed
+ *echo
  * while the channel remains open.All methods that accept timeout parameters treat values
  * less than or equal to zero to mean that the I/O operation does not timeout.
  */

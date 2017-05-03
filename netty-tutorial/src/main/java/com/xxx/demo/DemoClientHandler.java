@@ -11,7 +11,7 @@ import java.io.UnsupportedEncodingException;
  * Created by dhy on 17-3-29.
  *
  */
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+public class DemoClientHandler extends ChannelInboundHandlerAdapter {
     ChannelHandlerContext ctx;
 
     @Override

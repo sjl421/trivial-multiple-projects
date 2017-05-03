@@ -8,15 +8,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import java.util.logging.SocketHandler;
-
 /**
  * Created by dhy on 17-3-29.
  *
  */
-public class Server {
+public class DemoServer {
     private int port;
-    public Server(int port) {
+    public DemoServer(int port) {
         this.port = port;
     }
 
@@ -32,7 +30,7 @@ public class Server {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new ServerHandler());
+                            ch.pipeline().addLast(new DemoServerHandler());
                         }
                     });
             ChannelFuture cf = bootstrap.bind(port).sync();
@@ -48,6 +46,6 @@ public class Server {
 
     public static void main(String[] args) {
         int port = 9090;
-        new Server(port).run();
+        new DemoServer(port).run();
     }
 }
