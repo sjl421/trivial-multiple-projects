@@ -19,13 +19,22 @@ public class TimeServerHandler1 extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws UnsupportedEncodingException {
-        ByteBuf buf = (ByteBuf) msg;
-        byte[] req = new byte[buf.readableBytes()];
-        buf.readBytes(req);
-        String body = new String(req, "UTF-8").substring(0, req.length - System.getProperty("line.separator").length());
+//        ByteBuf buf = (ByteBuf) msg;
+//        byte[] req = new byte[buf.readableBytes()];
+//        buf.readBytes(req);
+//        String body = new String(req, "UTF-8").substring(0, req.length - System.getProperty("line.separator").length());
+//        System.out.println("The time server receive order : " + body + " ; the counter is : " + ++counter);
+//        String currentTime = body.startsWith("QUERY TIME ORDER") ? new Date(System.currentTimeMillis()).toString() : "BAD ORDER";
+//        currentTime = currentTime + System.getProperty("line.separator");
+//        ByteBuf resp = Unpooled.copiedBuffer(currentTime.getBytes());
+//        ctx.writeAndFlush(resp);
+
+        /*
+         * 增加解码器后的 Server handler
+         */
+        String body = (String) msg;
         System.out.println("The time server receive order : " + body + " ; the counter is : " + ++counter);
-        String currentTime = body.startsWith("QUERY TIME ORDER") ? new Date(System.currentTimeMillis()).toString() : "BAD ORDER";
-        currentTime = currentTime + System.getProperty("line.separator");
+        String currentTime = new Date(System.currentTimeMillis()).toString() + System.getProperty("line.separator");
         ByteBuf resp = Unpooled.copiedBuffer(currentTime.getBytes());
         ctx.writeAndFlush(resp);
     }

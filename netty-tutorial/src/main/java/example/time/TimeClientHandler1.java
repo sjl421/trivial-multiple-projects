@@ -34,11 +34,17 @@ public class TimeClientHandler1 extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ByteBuf buf = (ByteBuf) msg;
-        byte[] req = new byte[buf.readableBytes()];
-        buf.readBytes(req);
-        String body = new String(req, "UTF-8");
-        System.out.println("Now is : " + body + "; the counter is : " + ++counter);
+//        ByteBuf buf = (ByteBuf) msg;
+//        byte[] req = new byte[buf.readableBytes()];
+//        buf.readBytes(req);
+//        String body = new String(req, "UTF-8");
+//        System.out.println("Now is : " + body + "; the counter is : " + ++counter);
+
+        /*
+         * 增加解码器后的read事件
+         */
+        String body = (String) msg;
+        System.out.println("Now is : " + body + " ; the counter is : " + ++counter);
     }
 
     @Override
