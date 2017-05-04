@@ -1,4 +1,4 @@
-package example.echo;
+package com.xxx.example.echo;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
