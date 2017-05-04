@@ -1,4 +1,4 @@
-package example.time;
+package com.xxx.example.time;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;

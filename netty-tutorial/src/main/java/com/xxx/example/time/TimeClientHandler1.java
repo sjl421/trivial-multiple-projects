@@ -1,4 +1,4 @@
-package example.time;
+package com.xxx.example.time;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
