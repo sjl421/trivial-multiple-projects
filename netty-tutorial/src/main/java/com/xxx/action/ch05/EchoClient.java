@@ -1,14 +1,15 @@
-package com.xxx.example.echo;
+package com.xxx.action.ch05;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 
 
 /**
@@ -26,7 +27,11 @@ public class EchoClient {
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new LineBasedFrameDecoder(1024), new StringEncoder(), new StringDecoder(), new EchoClientHandler());
+//                            ch.pipeline().addLast(new LineBasedFrameDecoder(1024), new StringEncoder(), new StringDecoder(), new EchoClientHandler());
+                            ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
+                            ch.pipeline().addLast(new StringDecoder());
+                            ch.pipeline().addLast(new EchoClientHandler());
                         }
                     });
 

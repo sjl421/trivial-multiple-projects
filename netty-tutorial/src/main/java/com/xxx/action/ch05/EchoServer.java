@@ -1,15 +1,16 @@
-package com.xxx.example.echo;
+package com.xxx.action.ch05;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 
 /**
  * Created by dhy on 2017/5/3.
@@ -39,16 +40,16 @@ public class EchoServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new LineBasedFrameDecoder(1024), new StringDecoder(), new StringEncoder(), new EchoServerHandler());
+                            ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
+                            ch.pipeline().addLast(new StringDecoder());
+                            ch.pipeline().addLast(new EchoServerHandler());
                         }
                     });
             // 绑定端口并且开始接受客户端的 accept 连接
             ChannelFuture f = b.bind(PORT).sync();
 
-            System.out.println("Server start to shutdown!");
-            // 关闭 Server，在本例子中由于上面的代码将一直阻塞，本行代码将永远不会执行
-            ChannelFuture fu = f.channel().closeFuture().sync();
-            System.out.println("Server shutdown successfully");
+            f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
