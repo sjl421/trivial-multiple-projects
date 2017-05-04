@@ -13,7 +13,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  *
  */
 public class TimeServer {
-    public void bind(int port) {
+    private void bind(int port) {
         // 配置服务端的NIO线程组
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -41,7 +41,8 @@ public class TimeServer {
     private class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
-            ch.pipeline().addLast(new TimeServerHandler());
+            ch.pipeline().addLast(new TimeServerHandler1());
+//            ch.pipeline().addLast(new TimeServerHandler());
         }
     }
 

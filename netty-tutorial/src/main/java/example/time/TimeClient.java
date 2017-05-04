@@ -22,7 +22,8 @@ public class TimeClient {
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new TimeClientHandler());
+                            ch.pipeline().addLast(new TimeClientHandler1());
+//                            ch.pipeline().addLast(new TimeClientHandler());
                         }
                     });
             // 发起异步连接操作
