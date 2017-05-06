@@ -1,5 +1,7 @@
 package com.xxx.action.ch06;
 
+import org.msgpack.annotation.Message;
+
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
@@ -7,6 +9,7 @@ import java.nio.ByteBuffer;
  * Created by dhy on 2017/5/5.
  * 通过实例查看Java序列化之后的大小
  */
+@Message
 public class UserInfo implements Serializable {
     private String userName;
     private int userID;

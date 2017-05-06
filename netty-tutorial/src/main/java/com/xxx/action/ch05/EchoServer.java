@@ -1,16 +1,16 @@
 package com.xxx.action.ch05;
 
+import com.xxx.action.ch07.MsgpackDecoder;
+import com.xxx.action.ch07.MsgpackEncoder;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 
 /**
  * Created by dhy on 2017/5/3.
@@ -40,10 +40,16 @@ public class EchoServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
-                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
-                            ch.pipeline().addLast(new StringDecoder());
-                            ch.pipeline().addLast(new EchoServerHandler());
+//                            ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+//                            ch.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
+//                            ch.pipeline().addLast(new StringDecoder());
+//                            ch.pipeline().addLast(new EchoServerHandler());
+
+                            ch.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(65535, 0, 3, 0,3));
+                            ch.pipeline().addLast("msgpack decoder", new MsgpackDecoder());
+                            ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(3));
+                            ch.pipeline().addLast("msgpack encoder", new MsgpackEncoder());
+                            ch.pipeline().addLast(new MsgpackEchoServerHandler());
                         }
                     });
             // 绑定端口并且开始接受客户端的 accept 连接
