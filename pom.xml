@@ -52,6 +52,7 @@
     </build>
 
     <modules>
+        <module>data-structure-and-algorithm-analysis</module>
         <module>java-performance-note</module>
         <module>netty-tutorial</module>
         <module>nio-server</module>
